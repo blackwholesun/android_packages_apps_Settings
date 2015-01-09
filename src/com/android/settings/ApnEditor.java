@@ -62,6 +62,9 @@ public class ApnEditor extends SettingsPreferenceFragment
     private final static String KEY_BEARER = "bearer";
     private final static String KEY_MVNO_TYPE = "mvno_type";
 
+    protected static final String EDIT_ACTION = "edit_action";
+    protected static final String EDIT_DATA = "edit_data";
+
     private static final int MENU_DELETE = Menu.FIRST;
     private static final int MENU_SAVE = Menu.FIRST + 1;
     private static final int MENU_CANCEL = Menu.FIRST + 2;
@@ -192,15 +195,21 @@ public class ApnEditor extends SettingsPreferenceFragment
         mRes = getResources();
 
         final Intent intent = getActivity().getIntent();
-        final String action = intent.getAction();
+        String action = intent.getAction();
+        Bundle arguments = getArguments();
+
+        if (arguments != null && arguments.containsKey(EDIT_ACTION)) {
+            mUri = Uri.parse(arguments.getString(EDIT_DATA));
+            action = arguments.getString(EDIT_ACTION);
+        } else {
+            mUri = intent.getData();
+        }
 
         mFirstTime = icicle == null;
 
-        if (action.equals(Intent.ACTION_EDIT)) {
-            mUri = intent.getData();
-        } else if (action.equals(Intent.ACTION_INSERT)) {
+        if (action.equals(Intent.ACTION_INSERT)) {
             if (mFirstTime || icicle.getInt(SAVED_POS) == 0) {
-                mUri = getContentResolver().insert(intent.getData(), new ContentValues());
+                mUri = getContentResolver().insert(mUri, new ContentValues());
             } else {
                 mUri = ContentUris.withAppendedId(Telephony.Carriers.CONTENT_URI,
                         icicle.getInt(SAVED_POS));
@@ -220,7 +229,7 @@ public class ApnEditor extends SettingsPreferenceFragment
             // set the result to be returned.
             getActivity().setResult(Activity.RESULT_OK, (new Intent()).setAction(mUri.toString()));
 
-        } else {
+        } else if (!action.equals(Intent.ACTION_EDIT)) {
             finish();
             return;
         }
