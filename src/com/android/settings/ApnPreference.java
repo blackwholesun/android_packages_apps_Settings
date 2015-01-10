@@ -20,7 +20,9 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.preference.Preference;
+import android.preference.PreferenceActivity;
 import android.provider.Telephony;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -117,7 +119,12 @@ public class ApnPreference extends Preference implements
             if (context != null) {
                 int pos = Integer.parseInt(getKey());
                 Uri url = ContentUris.withAppendedId(Telephony.Carriers.CONTENT_URI, pos);
-                context.startActivity(new Intent(Intent.ACTION_EDIT, url));
+                Bundle editBundle = new Bundle();
+                editBundle.putString(ApnEditor.EDIT_ACTION, Intent.ACTION_EDIT);
+                editBundle.putString(ApnEditor.EDIT_DATA, url.toSafeString());
+                ((PreferenceActivity) context).startPreferencePanel(ApnEditor.class.getName(), editBundle,
+                        R.string.apn_edit, null, null, 0);
+
             }
         }
     }
